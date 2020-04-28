@@ -112,6 +112,12 @@ class FlutterWebViewClient {
     return true;
   }
 
+  public void onLongPressImage(WebView view, String image) {
+    Map<String, Object> args = new HashMap<>();
+    args.put("image", image);
+    methodChannel.invokeMethod("onLongPressImage", args);
+  }
+
   private void onPageStarted(WebView view, String url) {
     Map<String, Object> args = new HashMap<>();
     args.put("url", url);

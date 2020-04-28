@@ -31,6 +31,8 @@ abstract class WebViewPlatformCallbacksHandler {
 
   /// Report web resource loading error to the host application.
   void onWebResourceError(WebResourceError error);
+
+  void onLongPressImage(String image);
 }
 
 /// Possible error type categorizations used by [WebResourceError].

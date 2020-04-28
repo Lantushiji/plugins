@@ -82,6 +82,8 @@ typedef void PageFinishedCallback(String url);
 /// Signature for when a [WebView] has failed to load a resource.
 typedef void WebResourceErrorCallback(WebResourceError error);
 
+typedef void LongPressImageCallback(String image);
+
 /// Specifies possible restrictions on automatic media playback.
 ///
 /// This is typically used in [WebView.initialMediaPlaybackPolicy].
@@ -140,7 +142,7 @@ class WebView extends StatefulWidget {
   /// `onWebViewCreated` callback once the web view is created.
   ///
   /// The `javascriptMode` and `autoMediaPlaybackPolicy` parameters must not be null.
-  const WebView({
+  WebView({
     Key key,
     this.onWebViewCreated,
     this.initialUrl,
@@ -153,12 +155,28 @@ class WebView extends StatefulWidget {
     this.onWebResourceError,
     this.debuggingEnabled = false,
     this.gestureNavigationEnabled = false,
+    this.onLongPressImage,
     this.userAgent,
     this.initialMediaPlaybackPolicy =
         AutoMediaPlaybackPolicy.require_user_action_for_all_media_types,
   })  : assert(javascriptMode != null),
         assert(initialMediaPlaybackPolicy != null),
-        super(key: key);
+        super(key: key) {
+    if (this.onLongPressImage != null) {
+      var longPressGestureRecognizer = LongPressGestureRecognizer();
+      longPressGestureRecognizer.onLongPress = () {};
+      if (this.gestureRecognizers == null) {
+        this.gestureRecognizers = [
+          Factory(()=>longPressGestureRecognizer)
+        ].toSet();
+      } else {
+        var gestures = Set<Factory<OneSequenceGestureRecognizer>>();
+        gestures.addAll(this.gestureRecognizers);
+        gestures.add(Factory(()=>longPressGestureRecognizer));
+        this.gestureRecognizers = gestures;
+      }
+    }
+  }
 
   static WebViewPlatform _platform;
 
@@ -205,7 +223,7 @@ class WebView extends StatefulWidget {
   ///
   /// When this set is empty or null, the web view will only handle pointer events for gestures that
   /// were not claimed by any other gesture recognizer.
-  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
+  Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
 
   /// The initial URL to load.
   final String initialUrl;
@@ -268,6 +286,9 @@ class WebView extends StatefulWidget {
 
   /// Invoked when a page starts loading.
   final PageStartedCallback onPageStarted;
+
+  final LongPressImageCallback onLongPressImage;
+
 
   /// Invoked when a page has finished loading.
   ///
@@ -489,6 +510,13 @@ class _PlatformCallbacksHandler implements WebViewPlatformCallbacksHandler {
   void onPageFinished(String url) {
     if (_widget.onPageFinished != null) {
       _widget.onPageFinished(url);
+    }
+  }
+
+  @override
+  void onLongPressImage(String image) {
+    if (_widget.onLongPressImage != null) {
+      _widget.onLongPressImage(image);
     }
   }
 

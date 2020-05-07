@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
@@ -162,7 +162,7 @@ class WebView extends StatefulWidget {
   })  : assert(javascriptMode != null),
         assert(initialMediaPlaybackPolicy != null),
         super(key: key) {
-    if (this.onLongPressImage != null) {
+    if (Platform.isAndroid && this.onLongPressImage != null) {
       var longPressGestureRecognizer = LongPressGestureRecognizer();
       longPressGestureRecognizer.onLongPress = () {};
       if (this.gestureRecognizers == null) {

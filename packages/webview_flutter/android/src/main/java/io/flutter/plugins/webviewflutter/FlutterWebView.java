@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebChromeClient;
 import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -43,7 +44,6 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
       int id,
       Map<String, Object> params,
       View containerView) {
-
     DisplayListenerProxy displayListenerProxy = new DisplayListenerProxy();
     DisplayManager displayManager =
         (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
@@ -89,6 +89,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
         return false;
       }
     });
+    webView.setWebChromeClient(new InAppWebViewChromeClient());
   }
 
   @Override

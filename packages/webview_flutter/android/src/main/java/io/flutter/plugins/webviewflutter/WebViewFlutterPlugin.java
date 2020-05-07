@@ -4,7 +4,11 @@
 
 package io.flutter.plugins.webviewflutter;
 
+import android.app.Activity;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
@@ -16,10 +20,11 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
  * <p>Call {@link #registerWith(Registrar)} to use the stable {@code io.flutter.plugin.common}
  * package instead.
  */
-public class WebViewFlutterPlugin implements FlutterPlugin {
+public class WebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
 
   private FlutterCookieManager flutterCookieManager;
 
+  public static Activity activity;
   /**
    * Add an instance of this to {@link io.flutter.embedding.engine.plugins.PluginRegistry} to
    * register it.
@@ -42,6 +47,7 @@ public class WebViewFlutterPlugin implements FlutterPlugin {
    * won't react to changes in activity or context, unlike {@link CameraPlugin}.
    */
   public static void registerWith(Registrar registrar) {
+    activity = registrar.activity();
     registrar
         .platformViewRegistry()
         .registerViewFactory(
@@ -60,6 +66,26 @@ public class WebViewFlutterPlugin implements FlutterPlugin {
         .registerViewFactory(
             "plugins.flutter.io/webview", new WebViewFactory(messenger, /*containerView=*/ null));
     flutterCookieManager = new FlutterCookieManager(messenger);
+  }
+
+  @Override
+  public void onAttachedToActivity(ActivityPluginBinding binding) {
+    activity = binding.getActivity();
+  }
+
+  @Override
+  public void onDetachedFromActivityForConfigChanges() {
+
+  }
+
+  @Override
+  public void onReattachedToActivityForConfigChanges(ActivityPluginBinding binding) {
+    activity = binding.getActivity();
+  }
+
+  @Override
+  public void onDetachedFromActivity() {
+
   }
 
   @Override

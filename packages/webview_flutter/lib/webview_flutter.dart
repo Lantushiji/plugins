@@ -162,20 +162,7 @@ class WebView extends StatefulWidget {
   })  : assert(javascriptMode != null),
         assert(initialMediaPlaybackPolicy != null),
         super(key: key) {
-    if (Platform.isAndroid && this.onLongPressImage != null) {
-      var longPressGestureRecognizer = LongPressGestureRecognizer();
-      longPressGestureRecognizer.onLongPress = () {};
-      if (this.gestureRecognizers == null) {
-        this.gestureRecognizers = [
-          Factory(()=>longPressGestureRecognizer)
-        ].toSet();
-      } else {
-        var gestures = Set<Factory<OneSequenceGestureRecognizer>>();
-        gestures.addAll(this.gestureRecognizers);
-        gestures.add(Factory(()=>longPressGestureRecognizer));
-        this.gestureRecognizers = gestures;
-      }
-    }
+
   }
 
   static WebViewPlatform _platform;
@@ -357,8 +344,40 @@ class WebView extends StatefulWidget {
 class _WebViewState extends State<WebView> {
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
+  WebViewController _cc;
 
   _PlatformCallbacksHandler _platformCallbacksHandler;
+  Set<Factory<OneSequenceGestureRecognizer>> _gestureRecognizers;
+
+  Set<Factory<OneSequenceGestureRecognizer>> _initRecognizers() {
+    if (this._gestureRecognizers != null) return _gestureRecognizers;
+    this._gestureRecognizers = widget.gestureRecognizers;
+    if (widget.onLongPressImage != null) {
+      var longPressGestureRecognizer = LongPressGestureRecognizer();
+      longPressGestureRecognizer.onLongPressStart = (details) async {
+        print('long press start ');
+        if (this._cc == null) return;
+        var x = details.localPosition.dx;
+        var y = details.localPosition.dy;
+        var src = await this._cc.evaluateJavascript("document.elementFromPoint(${x}, ${y}).src");
+        print('long press end ${x},${y} ${src} ');
+
+      };
+//      longPressGestureRecognizer.onLongPress = () async {
+//
+//      };
+      if (this._gestureRecognizers == null) {
+        this._gestureRecognizers = [
+          Factory(()=>longPressGestureRecognizer)
+        ].toSet();
+      } else {
+        var gestures = Set<Factory<OneSequenceGestureRecognizer>>();
+        gestures.addAll(this._gestureRecognizers);
+        gestures.add(Factory(()=>longPressGestureRecognizer));
+        this._gestureRecognizers = gestures;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -366,7 +385,7 @@ class _WebViewState extends State<WebView> {
       context: context,
       onWebViewPlatformCreated: _onWebViewPlatformCreated,
       webViewPlatformCallbacksHandler: _platformCallbacksHandler,
-      gestureRecognizers: widget.gestureRecognizers,
+      gestureRecognizers: this._initRecognizers(),
       creationParams: _creationParamsfromWidget(widget),
     );
   }
@@ -392,6 +411,7 @@ class _WebViewState extends State<WebView> {
     final WebViewController controller =
         WebViewController._(widget, webViewPlatform, _platformCallbacksHandler);
     _controller.complete(controller);
+    _cc = controller;
     if (widget.onWebViewCreated != null) {
       widget.onWebViewCreated(controller);
     }
